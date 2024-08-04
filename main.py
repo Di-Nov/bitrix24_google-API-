@@ -1,21 +1,17 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import BaseModel
 import uvicorn
 import requests
+import logging
 
 from config import settings
 
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 app = FastAPI()
-
-
-# class OAuthCode(BaseModel):
-#     code: str
-#     state: str | None
-#     domain: str
-#     member_id: str
-#     scope: str
-#     server_domain: str
 
 
 @app.get("/")
@@ -42,7 +38,6 @@ async def callback(request: Request):
 
 
 def exchange_code_for_tokens(code: str):
-    # Обмен кода на токены
     data = {
         'grant_type': 'authorization_code',
         'client_id': settings.CLIENT_ID,
@@ -50,22 +45,24 @@ def exchange_code_for_tokens(code: str):
         'redirect_uri': settings.REDIRECT_URI,
         'code': code
     }
-    print("Request data:", data)  # Отладочное сообщение
+    logger.info("Request data: %s", data)
 
-    response = requests.post(settings.TOKEN_URL, data=data)
+    try:
+        response = requests.post(settings.TOKEN_URL, data=data)
+        response.raise_for_status()  # Вызывает исключение для статусов 4xx и 5xx
 
-    print("Response status code:", response.status_code)
-    print("Response text:", response.text)
-
-    if response.status_code == 200:
         tokens = response.json()
         access_token = tokens.get('access_token')
         refresh_token = tokens.get('refresh_token')
-        print('Access Token:', access_token)
-        print('Refresh Token:', refresh_token)
-    else:
-        print('Ошибка при получении токенов:', response.json())
-    return response.json()
+        logger.info('Access Token: %s', access_token)
+        logger.info('Refresh Token: %s', refresh_token)
+        return tokens
+    except requests.exceptions.HTTPError as http_err:
+        logger.error('HTTP error occurred: %s', http_err)
+    except Exception as err:
+        logger.error('An error occurred: %s', err)
+
+    return {"error": "Failed to obtain tokens"}
 
 
 if __name__ == "__main__":
