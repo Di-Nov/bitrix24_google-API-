@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
+    HOST: str
+    PORT: int
     CLIENT_ID: str
     CLIENT_SECRET: str
     DOMAIN: str | None
