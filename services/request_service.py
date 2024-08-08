@@ -4,13 +4,14 @@ from pydantic import BaseModel, ValidationError
 import requests
 from json import JSONDecodeError
 
-def request(
+def castom_request(
         url: str,
-        method: Literal['GET', 'POST', 'PUT', 'PATCH' 'DELETE'] = 'GET',
+        method: Literal['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] = 'GET',
         params: dict[str, Any] | None = None,
         schema: Type[BaseModel] | None = None,
         **kwargs,
 ):
+    """В данном скрипте не используется, надо доработать"""
     try:
         response = requests.request(url=url, method=method, params=params)
         response.raise_for_status()
