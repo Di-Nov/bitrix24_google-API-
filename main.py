@@ -2,13 +2,13 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 import uvicorn
 import logging
+from load_google import load_data_in_google_sheets
 
 from config import settings
 
 from get_token import exchange_code_for_tokens
 from api import get_users
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -32,12 +32,12 @@ async def callback(request: Request):
     # Получение кода авторизации из параметров запроса
     code = request.query_params.get("code")
     if code:
-        # Здесь вы можете обменять код на токены
         tokens = exchange_code_for_tokens(code)
         users = get_users(tokens.get('access_token'))
+        load_data_in_google_sheets(users)
         return users
     return {"error": "Authorization code not found"}
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="localhost", port=8000, reload=True)
+    uvicorn.run("main:app", host=settings.HOST, port=settings.PORT, reload=True)
