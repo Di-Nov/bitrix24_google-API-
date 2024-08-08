@@ -37,10 +37,8 @@ async def callback(request: Request):
         data = bitrix_service.get_users()
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         google_service = GoogleSheetsService(spreadsheet_name="For Bitrix24", worksheet_name="Лист1", scope=scope)
-        client = google_service.auth()
+        google_service.auth()
         google_service.load_data(data)
-
-        return {'data': data}
     else:
         logger.error("Код авторизации не найден.")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Код авторизации не найден.")
