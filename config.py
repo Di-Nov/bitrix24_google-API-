@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     REDIRECT_URI: str
     AUTHORIZATION_URL: str
     TOKEN_URL: str
+    PATH_TO_CREDENTIALS: str
 
 
 settings = Settings()
