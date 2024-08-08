@@ -3,7 +3,6 @@ from fastapi import HTTPException
 
 from config import settings
 import logging
-from api import get_contacts, get_tasks, get_users
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

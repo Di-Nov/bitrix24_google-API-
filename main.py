@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 import uvicorn
 import logging
+
+from bitrix_service import BitrixService
 from load_google import load_data_in_google_sheets
 
 from config import settings
@@ -30,13 +32,9 @@ async def login():
 @app.get("/oauth/authorized")
 async def callback(request: Request):
     # Получение кода авторизации из параметров запроса
-    code = request.query_params.get("code")
-    if code:
-        tokens = exchange_code_for_tokens(code)
-        users = get_users(tokens.get('access_token'))
-        load_data_in_google_sheets(users)
-        return users
-    return {"error": "Authorization code not found"}
+    if code := request.query_params.get("code"):
+        return {'code': code}
+    return {'status': '404 not found'}
 
 
 if __name__ == "__main__":
