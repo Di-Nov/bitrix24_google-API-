@@ -1,13 +1,12 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 import uvicorn
 import logging
-from load_google import load_data_in_google_sheets
 
+from button import button
 from config import settings
-
-from get_token import exchange_code_for_tokens
-from api import get_users
+from services.bitrix_service import BitrixService
+from services.google_service import GoogleSheetsService
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,7 +16,7 @@ app = FastAPI()
 
 @app.get("/")
 async def home():
-    return HTMLResponse('<a href="/login">Login with Bitrix24</a>')
+    return HTMLResponse(button)
 
 
 @app.get("/login")
@@ -29,14 +28,22 @@ async def login():
 
 @app.get("/oauth/authorized")
 async def callback(request: Request):
-    # Получение кода авторизации из параметров запроса
-    code = request.query_params.get("code")
-    if code:
-        tokens = exchange_code_for_tokens(code)
-        users = get_users(tokens.get('access_token'))
-        load_data_in_google_sheets(users)
-        return users
-    return {"error": "Authorization code not found"}
+    print(request)
+    # Получение кода авторизации из параметров запроса и выполнение основной логики загрузки данных
+    if code := request.query_params.get("code"):
+        bitrix_service = BitrixService()
+        bitrix_service.code = code
+        bitrix_service.auth()
+        data = bitrix_service.get_users()
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        google_service = GoogleSheetsService(spreadsheet_name="For Bitrix24", worksheet_name="Лист1", scope=scope)
+        client = google_service.auth()
+        google_service.load_data(data)
+
+        return {'data': data}
+    else:
+        logger.error("Код авторизации не найден.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Код авторизации не найден.")
 
 
 if __name__ == "__main__":
