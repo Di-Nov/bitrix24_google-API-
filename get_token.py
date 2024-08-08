@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 def exchange_code_for_tokens(code: str):
+    '''Здесь вы можете обменять код на токены'''
+
     data = {
         'grant_type': 'authorization_code',
         'client_id': settings.CLIENT_ID,
