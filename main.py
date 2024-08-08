@@ -1,15 +1,13 @@
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 import uvicorn
-import logging
+from logger import logger
 
 from button import button
 from config import settings
 from services.bitrix_service import BitrixService
 from services.google_service import GoogleSheetsService
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
